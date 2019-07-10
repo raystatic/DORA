@@ -216,7 +216,46 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    private fun loadContacts() {
+    fun checkVoiceCommandPermission(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
+               val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
+                startActivity(intent)
+                finish()
+            }
+        }
+    }
+
+    fun checkSMSPermission(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED){
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
+                startActivity(intent)
+                finish()
+            }
+        }
+    }
+    fun checkCALLPermission(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
+                startActivity(intent)
+                finish()
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        textToSpeech.stop()
+        textToSpeech.shutdown()
+    }
+
+
+
+
+    //contacts retrival
+    //    private fun loadContacts() {
 //        var builder: StringBuilder
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(
@@ -282,40 +321,6 @@ class MainActivity : AppCompatActivity() {
 //        return builder
 //    }
 
-    fun checkVoiceCommandPermission(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED){
-               val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
-                startActivity(intent)
-                finish()
-            }
-        }
-    }
-
-    fun checkSMSPermission(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED){
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
-                startActivity(intent)
-                finish()
-            }
-        }
-    }
-    fun checkCALLPermission(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED){
-                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))
-                startActivity(intent)
-                finish()
-            }
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        textToSpeech.stop()
-        textToSpeech.shutdown()
-    }
 
     companion object {
 
