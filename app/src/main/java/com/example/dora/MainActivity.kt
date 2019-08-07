@@ -1,11 +1,13 @@
 package com.example.dora
 
+import android.content.ContentResolver
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.provider.Settings
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -48,6 +50,8 @@ class MainActivity : AppCompatActivity() {
         setUpSpeaking()
 
         setUpListening()
+
+        getContacts()
 
     }
 
@@ -253,6 +257,33 @@ class MainActivity : AppCompatActivity() {
 
 
 
+    //get contacts - part 2
+    private fun getContacts(){
+        var resolver = contentResolver
+        var cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI, null,null, null, null)
+        while (cursor.moveToNext()){
+            var id  = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID))
+            var name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+            var phoneCursor = resolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", arrayOf(id),null)
+
+            Log.d("My Info","${id} = ${name}")
+
+            while (phoneCursor.moveToNext()){
+                var phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                Log.d("My Info","phone number = ${phoneNumber}")
+            }
+
+            var emailCursor = resolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
+                ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", arrayOf(id), null)
+
+            while (emailCursor.moveToNext()){
+                var email = emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA)
+                Log.d("My Info","email = ${email}")
+            }
+
+        }
+    }
 
     //contacts retrival
     //    private fun loadContacts() {
