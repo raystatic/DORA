@@ -1,6 +1,5 @@
 package com.example.dora
 
-import android.content.ContentResolver
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -21,6 +20,8 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 class MainActivity : AppCompatActivity() {
 
@@ -38,6 +39,10 @@ class MainActivity : AppCompatActivity() {
 
     //contacts
     lateinit var phoneNumber:String
+    lateinit var contactName:String
+
+
+    var nameList = ArrayList<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +56,7 @@ class MainActivity : AppCompatActivity() {
 
         setUpListening()
 
-        getContacts()
+       // getContacts()
 
     }
 
@@ -166,8 +171,10 @@ class MainActivity : AppCompatActivity() {
                             MSGCONTENTFLAG = false
                         }
                         CALLRECIPENTFLAG -> {
-                            phoneNumber = keeper
-                            makeCall(phoneNumber)
+                            contactName = keeper
+                            speak("Searching contact, please wait")
+                            getContacts(contactName)
+                            //makeCall(phoneNumber)
                         }
                         else -> performAction(keeper)
                     }
@@ -177,7 +184,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun makeCall(phoneNumber: String) {
-        if (phoneNumber.length!=12){
+        Log.d("contactInfo","length ${phoneNumber.trim().length}")
+        if (phoneNumber.length<12){
             speak("Incorrect phone number")
         }else{
             val intent = Intent(Intent.ACTION_CALL)
@@ -215,7 +223,7 @@ class MainActivity : AppCompatActivity() {
             MSGRECIPENTFLAG = true
         }
         if (keeper.contains("make a call")){
-            speak("Tell me the number")
+            speak("Who is the recipient")
             CALLRECIPENTFLAG = true
         }
     }
@@ -258,31 +266,59 @@ class MainActivity : AppCompatActivity() {
 
 
     //get contacts - part 2
-    private fun getContacts(){
-        var resolver = contentResolver
-        var cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI, null,null, null, null)
+    private fun getContacts(contactName:String){
+
+        val phoneList = ArrayList<String>()
+        val nameList = ArrayList<String>()
+        val emailList = ArrayList<Int>()
+
+        val phoneNumberList = HashMap<String, String>()
+
+        var phoneNumber: String
+
+        val contactNumber:String
+
+        val resolver = contentResolver
+        val cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI, null,null, null, null)
         while (cursor.moveToNext()){
-            var id  = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID))
-            var name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
-            var phoneCursor = resolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+            val id  = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID))
+            val name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+            val phoneCursor = resolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
                 ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", arrayOf(id),null)
 
             Log.d("My Info","${id} = ${name}")
-
+            nameList.add(name)
             while (phoneCursor.moveToNext()){
-                var phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
-                Log.d("My Info","phone number = ${phoneNumber}")
+                phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                Log.d("My Info","phone number = $phoneNumber")
+                phoneList.clear()
+                phoneList.add(phoneNumber)
             }
 
-            var emailCursor = resolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI, null,
-                ContactsContract.CommonDataKinds.Email.CONTACT_ID + " = ?", arrayOf(id), null)
-
-            while (emailCursor.moveToNext()){
-                var email = emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA)
-                Log.d("My Info","email = ${email}")
+            if (phoneList.size>0){
+                if (!name.isNullOrBlank()){
+                    phoneNumberList[name.toLowerCase()] = phoneList[0]
+                }
             }
 
         }
+
+        Log.d("MyInfo", "${nameList.size}, ${phoneList.size}, ${emailList.size}, ${phoneNumberList.size}")
+        Log.d("contactInfo","phone: $contactName")
+        try {
+            contactNumber = phoneNumberList.getValue(contactName.toLowerCase()).toString()
+            if (contactNumber.isBlank()){
+                speak("contact not found")
+            }else{
+                Log.d("contactInfo","phone: $contactNumber")
+                makeCall(contactNumber)
+            }
+        }catch (e:NoSuchElementException){
+            speak("no contact found named $contactName")
+        }
+
+        CALLRECIPENTFLAG = false
+
     }
 
     //contacts retrival
